@@ -1,39 +1,12 @@
-# doco https://www.freedesktop.org/software/systemd/man/systemd.service.html
-# https://www.freedesktop.org/software/systemd/man/
 [Unit]
 Description=GadgetPi startup service
-# Requires=requirs.service a hard dependancy. Start template.service and requires.serice will start too. if requires.service service is killed this one will be to
-# RequiredBy= as above but reverse dependancy
-# PartOf=partof.service makes template.service restart when partof.service restarts
-# After= start this one after the mentioned service
+After=usbGadget.service
 
 [Service]
-# Restart=always|on-failure
-# RestartSec=5s
+Restart=always
+RestartSec=5s
 Type=exec
 ExecStart=/usr/bin/python3 -u /home/pi/dev/inky-gadget/GadgetPiStartup.py
-# Nice=
-# CPUSchedulingPolicy=rr
-# CPUSchedulingPriority=99
-# ExecStartPre=/usr/bin/echo "Hello Pre"
-# ExecStartPost=/usr/bin/echo "Hello Post"
 
 [Install]
-# Wants= other service if the wanted fails this will keep going
 WantedBy=multi-user.target  
-# run in "multi-user" mode aka normal operation
-
-# put file in /etc/systemd/system
-
-# CONTROL COMMANDS
-# Make it run at boot with 
-# $ sudo systemctl enable robot.service
-
-# Start/stop/restart it with 
-# $ sudo systemctl {stop,start,restart} robot.service
-
-# Prevent it from running at boot with 
-# $ sudo systemctl disable robot.service
-
-# View the output with 
-# $ sudo journalctl --unit=robot.service

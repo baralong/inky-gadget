@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##
-## load libcomposite and configure an ethernet gadget
+## load libcomposite and configure: serial, ethernet and mass storage gadgets
 ## run at boot from systemd, cron, or rc.local
 ## must be run as root or with sudo
 ##
@@ -9,12 +9,13 @@
 #
 # configuration parameters.
 # sensible defaults but change as desired
-GADGETDIR='pigadget' # full path should not be supplied
+GADGETDIR='gadgetpi' # full path should not be supplied
 SERIAL=`cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2` # Pi's serial number
 HOSTPREFIX="02"     # hex, two digits only
 DEVICEPREFIX="06"   # hex, two digits only
 MANUFACTURER="Baralong"
 PRODUCT='USB Gadget Device'
+FILE='/usbdisk'
 
 # calculate MAC addresses
 padded='00000000000000'$SERIAL
@@ -63,15 +64,14 @@ echo $devmac > functions/ecm.usb0/dev_addr
 ln -s functions/ecm.usb0 configs/c.1/
 
 # mass storage
-FILE=/usbdisk.img
-mkdir -p ${FILE/img/d}
-mount -o loop -t exfat $FILE ${FILE/img/d}
+mkdir -p $FILE.d
+mount -o loop -t exfat $FILE.img $FILE.d
 mkdir -p functions/mass_storage.usb0
 echo 1 > functions/mass_storage.usb0/stall
 echo 0 > functions/mass_storage.usb0/lun.0/cdrom
 echo 0 > functions/mass_storage.usb0/lun.0/ro
 echo 0 > functions/mass_storage.usb0/lun.0/nofua
-echo $FILE > functions/mass_storage.usb0/lun.0/file
+echo $FILE.img > functions/mass_storage.usb0/lun.0/file
 ln -s functions/mass_storage.usb0 configs/c.1/
 
 # End Functions
