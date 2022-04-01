@@ -1,7 +1,11 @@
 {
     "cSpell.words": [
         "dejavu",
+        "exfat",
+        "geteuid",
         "inet",
+        "ntuple",
+        "psutil",
         "wlan"
     ]
 }

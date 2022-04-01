@@ -4,17 +4,41 @@ import ifcfg
 import socket
 import os
 import shutil 
-import getpass
 import psutil
+from typing import NamedTuple
 
-inky = auto()
-inky.set_border(inky.WHITE)
-fa_solid = './Font Awesome 6 Free-Solid-900.otf'
-fa_regular_brands = './Font Awesome 6 Brands-Regular-400.otf'
-dejavu_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-dejavu_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-bold.ttf'
-img = Image.new("P", (inky.WIDTH, inky.HEIGHT))
-draw = ImageDraw.Draw(img)
+class GadgetInfo(NamedTuple):
+    host_name: int
+    usage: shutil._ntuple_diskusage
+    users: list
+    wlan: str
+    usb: str
+
+def get_gadget_info() -> GadgetInfo:
+    if(os.geteuid() == 0):
+        os.system('umount /usbdisk.d')
+        os.system('mount -o loop -t exfat /usbdisk.img /usbdisk.d')
+    net = ifcfg.interfaces()
+
+    return GadgetInfo( 
+            host_name = socket.gethostname(),
+            usage = shutil.disk_usage("/usbdisk.d"),
+            users = sorted(map(
+                            lambda user:
+                                (
+                                    user.name,
+                                    user.terminal[:3] if user.host == '' else user.host
+                                ),
+                                psutil.users())),
+
+            wlan = (net['wlan0']['inet']) if (
+                'wlan0' in net and 'inet' in net['wlan0']
+                ) else None,
+                
+            usb = (net['usb0']['inet']) if (
+                'usb0' in net and 'inet' in net['usb0']
+                ) else None
+        )
 
 def format_bytes(size):
     power = 2**10
@@ -24,6 +48,14 @@ def format_bytes(size):
         size /= power
         n += 1
     return f'{round(size)}{power_labels[n]}'
+
+
+inky = auto()
+inky.set_border(inky.WHITE)
+fa_solid = './Font Awesome 6 Free-Solid-900.otf'
+fa_regular_brands = './Font Awesome 6 Brands-Regular-400.otf'
+dejavu_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+dejavu_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-bold.ttf'
 
 def draw_host(draw, xy):
     font_logo = ImageFont.truetype(fa_regular_brands, 24)
@@ -56,12 +88,6 @@ def draw_host(draw, xy):
     draw.text((x,y), hostname, inky.WHITE, font_text, 'lm') 
     return (box_width + xy[0], box_height + xy[1])
 
-if(getpass.getuser() == 'root'):
-    os.system('umount /usbdisk.d')
-    os.system('mount -o loop -t exfat /usbdisk.img /usbdisk.d')
-
-usage = shutil.disk_usage("/usbdisk.d")
-
 def draw_usage_text(draw, xy, usage):
     font = ImageFont.truetype(dejavu_sans_bold,13)
 
@@ -73,8 +99,8 @@ def draw_usage_text(draw, xy, usage):
                 spacing = 2)
 
     values = (f'{format_bytes(usage.used)}\n'+
-            f'{format_bytes(usage.free)}\n'+
-            f'{format_bytes(usage.total)}')
+              f'{format_bytes(usage.free)}\n'+
+              f'{format_bytes(usage.total)}')
 
     value_width, _ = draw.multiline_textsize(
                 text = values, 
@@ -163,26 +189,30 @@ if('usb0' in net and 'inet' in net['usb0']
     _, y = draw_interface(draw, (x,y), ImageFont.truetype(fa_regular_brands, 16), '\uf1eb', font, net['usb0']['inet'])
     y += 3
 
-font = ImageFont.truetype(dejavu_sans,10)
-for user in psutil.users():
-    y += 2
-    x = 5
-    y_max = y
-    x, yd = draw_text((x, y), '[', inky.RED, font)
-    y_max = max(y_max, yd)
-    x, yd = draw_text((x, y), user.name, inky.BLACK, font)
-    y_max = max(y_max, yd)
-    x, yd = draw_text((x, y), '@', inky.RED, font)
-    y_max = max(y_max, yd)
-    host = user.terminal[:3] if user.host == '' else user.host
-    x, yd = draw_text((x, y), host, inky.BLACK, font)
-    y_max = max(y_max, yd)
-    x, yd = draw_text((x, y), ']', inky.RED, font)
-    y_max = max(y_max, yd) 
-    y_max += 2 # spacing
-    if y_max > inky.HEIGHT:
-        # went too far
-        break    
+def draw_users(draw, xy, users):
+    font = ImageFont.truetype(dejavu_sans,10)
+    for user in users:
+        y += 2
+        x = 5
+        y_max = y
+        x, yd = draw_text(draw, (x, y), '[', inky.RED, font)
+        y_max = max(y_max, yd)
+        x, yd = draw_text(draw, (x, y), user.name, inky.BLACK, font)
+        y_max = max(y_max, yd)
+        x, yd = draw_text(draw, (x, y), '@', inky.RED, font)
+        y_max = max(y_max, yd)
+        host = user.terminal[:3] if user.host == '' else user.host
+        x, yd = draw_text(draw, (x, y), host, inky.BLACK, font)
+        y_max = max(y_max, yd)
+        x, yd = draw_text(draw, (x, y), ']', inky.RED, font)
+        y_max = max(y_max, yd) 
+        y_max += 2 # spacing
+        if y_max > inky.HEIGHT:
+            # went too far
+            break    
+
+img = Image.new("P", (inky.WIDTH, inky.HEIGHT))
+draw = ImageDraw.Draw(img)
 
 
 inky.set_image(img)
