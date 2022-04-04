@@ -16,7 +16,7 @@ fa_solid = './Font Awesome 6 Free-Solid-900.otf'
 fa_regular = './Font Awesome 6 Free-Regular-400.otf'
 fa_regular_brands = './Font Awesome 6 Brands-Regular-400.otf'
 dejavu_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-dejavu_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-bold.ttf'
+dejavu_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 owner_name = 'Doug Paice'
 owner_email = 'doug@baralong.org'
 owner_twitter = '@baralong'
@@ -80,7 +80,7 @@ def draw_host(draw, xy, hostname):
 
     # draw a box big enough to have the text and logo with padding
     x, y = xy
-    box_width = x + logo_width + text_width + 10, # start + logo + host name + padding
+    box_width = x + logo_width + text_width + 10 # start + logo + host name + padding
     box_height = y + content_height + 10 # start + text height + padding
     draw.rounded_rectangle(
             xy = [(x,y),(x + box_width, y + box_height)],
@@ -175,12 +175,14 @@ def draw_text(draw, xy, text, color, font):
 
 def draw_icon_text(draw, xy, icon_font, icon_text, interface_font, interface_text):
     x, y_icon = draw_text(draw, xy, icon_text, inky.RED, icon_font)
-    x, y_text = draw.text(draw (x + 3, xy[1]), interface_text, inky.BLACK, interface_font)
+    x, y_text = draw_text(draw, (x + 3, xy[1]), interface_text, inky.BLACK, interface_font)
     return (x, max(y_icon, y_text))
 
 def draw_users(draw, xy, users: list[User]):
     font = ImageFont.truetype(dejavu_sans,10)
     x,y = xy
+    y_max = 0
+    x_max = 0
     for user in users:
         y += 2
         x = 5
@@ -195,9 +197,11 @@ def draw_users(draw, xy, users: list[User]):
         x, yd = draw_text(draw, (x, y), ']', inky.RED, font)
         y_max = max(y_max, yd) 
         y_max += 2 # spacing
+        x_max = max(x_max, x)
         if y_max > inky.HEIGHT:
             # went too far
             break    
+        return (x_max, y_max)
 
 def draw_filler(draw, xy, x_max: int,  shutdown: bool):
     # draw something to show current state, either on or off
