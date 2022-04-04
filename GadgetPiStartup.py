@@ -3,14 +3,32 @@ from PIL import Image, ImageFont, ImageDraw
 import ifcfg
 import socket
 import os
+import signal
 import shutil 
 import psutil
 from typing import NamedTuple
+import time
 
+# globals
+inky = auto()
+inky.set_border(inky.WHITE)
+fa_solid = './Font Awesome 6 Free-Solid-900.otf'
+fa_regular = './Font Awesome 6 Free-Regular-400.otf'
+fa_regular_brands = './Font Awesome 6 Brands-Regular-400.otf'
+dejavu_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+dejavu_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-bold.ttf'
+owner_name = 'Doug Paice'
+owner_email = 'doug@baralong.org'
+owner_twitter = '@baralong'
+owner_phone = '+61 421 708 171'
+
+class User(NamedTuple):
+    name: str
+    host: str | None
 class GadgetInfo(NamedTuple):
-    host_name: int
+    host_name: str
     usage: shutil._ntuple_diskusage
-    users: list
+    users: list[User]
     wlan: str
     usb: str
 
@@ -25,9 +43,9 @@ def get_gadget_info() -> GadgetInfo:
             usage = shutil.disk_usage("/usbdisk.d"),
             users = sorted(map(
                             lambda user:
-                                (
+                                User(
                                     user.name,
-                                    user.terminal[:3] if user.host == '' else user.host
+                                    user.terminal[:3] if (user.host == '' and user.terminal != None) else user.host
                                 ),
                                 psutil.users())),
 
@@ -49,18 +67,9 @@ def format_bytes(size):
         n += 1
     return f'{round(size)}{power_labels[n]}'
 
-
-inky = auto()
-inky.set_border(inky.WHITE)
-fa_solid = './Font Awesome 6 Free-Solid-900.otf'
-fa_regular_brands = './Font Awesome 6 Brands-Regular-400.otf'
-dejavu_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-dejavu_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-bold.ttf'
-
-def draw_host(draw, xy):
+def draw_host(draw: ImageDraw, xy, hostname: str):
     font_logo = ImageFont.truetype(fa_regular_brands, 24)
     font_text = ImageFont.truetype(dejavu_sans, 24)
-    hostname = socket.gethostname()
     rpi_logo = '\uf7bb'
 
     # measure up
@@ -88,7 +97,7 @@ def draw_host(draw, xy):
     draw.text((x,y), hostname, inky.WHITE, font_text, 'lm') 
     return (box_width + xy[0], box_height + xy[1])
 
-def draw_usage_text(draw, xy, usage):
+def draw_usage_text(draw: ImageDraw, xy, usage: shutil._ntuple_diskusage):
     font = ImageFont.truetype(dejavu_sans_bold,13)
 
     # measure up
@@ -135,7 +144,7 @@ def draw_usage_text(draw, xy, usage):
                         align = 'right')
     return (box_width + xy[0], box_height + xy[1])
 
-def draw_usage_chart(draw, xy, usage):
+def draw_usage_chart(draw: ImageDraw, xy, usage: shutil._ntuple_diskusage):
     # find the biggest box for the pie chart
     x,y = xy
     chart_size = min( 
@@ -148,7 +157,6 @@ def draw_usage_chart(draw, xy, usage):
                  outline = inky.BLACK, 
                  fill = inky.WHITE, 
                  width = 2)
-
     x += 1
     y += 1
     chart_size -= 2
@@ -160,49 +168,29 @@ def draw_usage_chart(draw, xy, usage):
                 end = (usage.used/usage.total) * 360)
     return (inky.WIDTH - 1, inky.HEIGHT - 1)
 
-def draw_text(draw, xy, text, color, font):
+def draw_text(draw: ImageDraw, xy, text:str, color, font):
     w,h = font.getsize(text)
     draw.text(xy, text, color, font)
     return (w+xy[0], h+xy[1])
 
-def draw_interface(draw, xy, icon_font, icon_text, interface_font, interface_text):
+def draw_icon_text(draw: ImageDraw, xy, icon_font, icon_text: str, interface_font, interface_text: str):
     x, y_icon = draw_text(draw, xy, icon_text, inky.RED, icon_font)
     x, y_text = draw.text(draw (x + 3, xy[1]), interface_text, inky.BLACK, interface_font)
     return (x, max(y_icon, y_text))
 
-net = ifcfg.interfaces() 
-
-# this is a dictionary. I want wlan0 and usb0, 
-# but want to check if present first
-
-x = 5
-y = 26
-font = ImageFont.truetype(dejavu_sans,13)
-if('wlan0' in net and 'inet' in net['wlan0'] 
-          and net['wlan0']['inet'] is not None):
-    _, y = draw_interface(draw, (x,y), ImageFont.truetype(fa_solid, 16), '\uf1eb', font, net['wlan0']['inet'])
-    y += 3
-
-
-if('usb0' in net and 'inet' in net['usb0'] 
-         and net['usb0']['inet'] is not None): 
-    _, y = draw_interface(draw, (x,y), ImageFont.truetype(fa_regular_brands, 16), '\uf1eb', font, net['usb0']['inet'])
-    y += 3
-
-def draw_users(draw, xy, users):
+def draw_users(draw: ImageDraw, xy, users: list[User]):
     font = ImageFont.truetype(dejavu_sans,10)
+    x,y = xy
     for user in users:
         y += 2
         x = 5
-        y_max = y
         x, yd = draw_text(draw, (x, y), '[', inky.RED, font)
-        y_max = max(y_max, yd)
+        y_max = yd
         x, yd = draw_text(draw, (x, y), user.name, inky.BLACK, font)
         y_max = max(y_max, yd)
         x, yd = draw_text(draw, (x, y), '@', inky.RED, font)
         y_max = max(y_max, yd)
-        host = user.terminal[:3] if user.host == '' else user.host
-        x, yd = draw_text(draw, (x, y), host, inky.BLACK, font)
+        x, yd = draw_text(draw, (x, y), user.host, inky.BLACK, font)
         y_max = max(y_max, yd)
         x, yd = draw_text(draw, (x, y), ']', inky.RED, font)
         y_max = max(y_max, yd) 
@@ -211,9 +199,79 @@ def draw_users(draw, xy, users):
             # went too far
             break    
 
-img = Image.new("P", (inky.WIDTH, inky.HEIGHT))
-draw = ImageDraw.Draw(img)
+def draw_filler(draw: ImageDraw, xy, x_max: int,  shutdown: bool):
+    # draw something to show current state, either on or off
+    x, y = xy
+    draw.rounded_rectangle(
+            xy = [(x,y),(x_max, inky.HEIGHT - 4)],
+            fill = inky.WHITE,
+            outline = inky.RED,
+            width = 2,
+            radius = 5)
+    x += 5
+    y += 5
+    font_text = ImageFont.truetype(dejavu_sans, 20)
+    _, y = draw_text(draw, (x,y), owner_name, inky.BLACK, font_text)
+    y += 3
+    _, y = draw_icon_text(draw, (x,y),
+                          ImageFont.truetype(fa_regular, 16), '\uf0e0', 
+                          ImageFont.truetype(dejavu_sans, 16), owner_email)
+    y += 2
+    _, y = draw_icon_text(draw, (x,y),
+                          ImageFont.truetype(fa_solid, 16), '\uf095', 
+                          ImageFont.truetype(dejavu_sans, 16), owner_phone)
+    y += 2
+    _, y = draw_icon_text(draw, (x,y),
+                          ImageFont.truetype(fa_regular_brands, 16), '\uf099', 
+                          ImageFont.truetype(dejavu_sans, 16), owner_twitter)
 
+def draw_info(gadget_info: GadgetInfo, shutdown: bool):
+    img = Image.new("P", (inky.WIDTH, inky.HEIGHT))
+    draw = ImageDraw.Draw(img)
+    # left side
+    x = 5
+    y = 5
+    xd,y = draw_host(draw, (x,y), gadget_info.hostname)
+    y += 3
+    x_max = xd
 
-inky.set_image(img)
-inky.show()
+    if gadget_info.wlan != None:
+        xd, y = draw_icon_text(draw, (x,y), 
+                          ImageFont.truetype(fa_regular, 16), '\uf1eb', 
+                          ImageFont.truetype(dejavu_sans, 16), gadget_info.wlan)
+        y += 3
+        x_max = max(x_max, xd)
+    
+    if gadget_info.usb != None:
+        xd, y = draw_icon_text(draw, (x,y), 
+                          ImageFont.truetype(fa_regular_brands, 16), '\uf1eb', 
+                          ImageFont.truetype(dejavu_sans, 16), gadget_info.usb)
+        x_max = max(x_max, xd)
+        y += 3
+
+    if gadget_info.users.count > 0:
+        xd, _ = draw_users(draw, (x,y), gadget_info.users)
+        x_max = max(x_max, xd)
+
+    if shutdown or (gadget_info.wlan == None and gadget_info.usb == None and gadget_info.users.count > 0):
+        draw_filler(draw, (x,y), x_max,  shutdown)
+    # right side
+    x = x_max
+    y = 5
+    _,y = draw_usage_text(draw, (x,y), gadget_info.usage)
+    draw_usage_chart(draw, (x,y), gadget_info.usage)
+
+    inky.set_image(img)
+    inky.show()
+    time.sleep(15)
+
+current_info = GadgetInfo(None,None,None,None,None)
+exit_gracefully = lambda _: draw_info(current_info, True)
+signal.signal(signal.SIGINT, exit_gracefully)
+signal.signal(signal.SIGTERM, exit_gracefully)
+while True:
+    new_info = get_gadget_info()
+    if current_info != new_info:
+        current_info = new_info
+        draw_info(current_info, False)
+    time.sleep(30)
