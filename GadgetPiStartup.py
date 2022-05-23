@@ -179,13 +179,17 @@ def draw_icon_text(draw, xy, icon_font, icon_text, interface_font, interface_tex
     return (x, max(y_icon, y_text))
 
 def draw_users(draw, xy, users: list[User]):
-    font = ImageFont.truetype(dejavu_sans,14)
+    icon = ImageFont.truetype(fa_solid, 14)
+    font = ImageFont.truetype(dejavu_sans,12)
     x,y = xy
     y_max = 0
     x_max = 0
     for user in users:
         y += 2
-        x = 5
+        x += 5
+        x, yd = draw_text(draw, (x, y + 2), '\uf120', inky.RED, icon)
+        x += 5
+        y_max = yd
         x, yd = draw_text(draw, (x, y), '[', inky.RED, font)
         y_max = yd
         x, yd = draw_text(draw, (x, y), user.name, inky.BLACK, font)
@@ -203,7 +207,7 @@ def draw_users(draw, xy, users: list[User]):
             break    
         return (x_max, y_max)
 
-def draw_filler(draw, xy, x_max: int,  shutdown: bool):
+def draw_owner(draw, xy, x_max: int,  shutdown: bool):
     # draw something to show current state, either on or off
     x, y = xy
     draw.rounded_rectangle(
@@ -258,8 +262,8 @@ def draw_info(gadget_info: GadgetInfo, shutdown: bool):
         xd, _ = draw_users(draw, (x,y), gadget_info.users)
         x_max = max(x_max, xd)
 
-    if shutdown or (gadget_info.wlan == None and gadget_info.usb == None and len(gadget_info.users) > 0):
-        draw_filler(draw, (x,y), x_max,  shutdown)
+    if shutdown or (gadget_info.wlan == None and gadget_info.usb == None and len(gadget_info.users) == 0):
+        draw_owner(draw, (x,y), x_max,  shutdown)
     # right side
     x = x_max
     y = 5
