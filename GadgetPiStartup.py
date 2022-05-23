@@ -3,24 +3,27 @@ from PIL import Image, ImageFont, ImageDraw
 import ifcfg
 import socket
 import os
+import sys
 import signal
 import shutil 
 import psutil
+import inspect
 from typing import NamedTuple
 import time
+import json
 
 # globals
 inky = auto()
 inky.set_border(inky.WHITE)
-fa_solid = './Font Awesome 6 Free-Solid-900.otf'
-fa_regular = './Font Awesome 6 Free-Regular-400.otf'
-fa_regular_brands = './Font Awesome 6 Brands-Regular-400.otf'
+my_dir = os.path.dirname(
+             os.path.abspath(
+                 inspect.getframeinfo(
+                     inspect.currentframe()).filename))
+fa_solid = f'{my_dir}/Font Awesome 6 Free-Solid-900.otf'
+fa_regular = f'{my_dir}/Font Awesome 6 Free-Regular-400.otf'
+fa_regular_brands = f'{my_dir}/Font Awesome 6 Brands-Regular-400.otf'
 dejavu_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 dejavu_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-owner_name = 'Doug Paice'
-owner_email = 'doug@baralong.org'
-owner_twitter = '@baralong'
-owner_phone = '+61 421 708 171'
 
 class User(NamedTuple):
     name: str
@@ -208,6 +211,17 @@ def draw_users(draw, xy, users: list[User]):
         return (x_max, y_max)
 
 def draw_owner(draw, xy, x_max: int,  shutdown: bool):
+    global my_dir
+    # get the data from the USB or default
+    owner = {}
+    usb_file = '/usbdisk.d/owner.json'
+    default_file = f'{my_dir}/owner.json'
+    data_file = usb_file if os.path.exists(usb_file) else default_file
+    try:
+        owner = json.load(open(data_file))
+    except:
+        print(f'Load of {data_file} failed')
+                
     # draw something to show current state, either on or off
     x, y = xy
     draw.rounded_rectangle(
@@ -218,21 +232,28 @@ def draw_owner(draw, xy, x_max: int,  shutdown: bool):
             radius = 5)
     x += 5
     y += 5
-    _, y = draw_icon_text(draw, (x,y),
-                          ImageFont.truetype(fa_solid, 12), '\uf4fb', 
-                          ImageFont.truetype(dejavu_sans_bold, 12), owner_name)
-    y += 2
-    _, y = draw_icon_text(draw, (x,y),
-                          ImageFont.truetype(fa_regular, 12), '\uf0e0', 
-                          ImageFont.truetype(dejavu_sans, 11), owner_email)
-    y += 2
-    _, y = draw_icon_text(draw, (x,y),
-                          ImageFont.truetype(fa_solid, 12), '\uf095', 
-                          ImageFont.truetype(dejavu_sans, 12), owner_phone)
-    y += 2
-    _, y = draw_icon_text(draw, (x,y),
-                          ImageFont.truetype(fa_regular_brands, 12), '\uf099', 
-                          ImageFont.truetype(dejavu_sans, 12), owner_twitter)
+    if "name" in owner:
+        _, y = draw_icon_text(draw, (x,y),
+                      ImageFont.truetype(fa_solid, 12), '\uf4fb', 
+                      ImageFont.truetype(dejavu_sans_bold, 12), owner["name"])
+        y += 2
+
+    if "email" in owner:
+        _, y = draw_icon_text(draw, (x,y),
+                      ImageFont.truetype(fa_regular, 12), '\uf0e0', 
+                      ImageFont.truetype(dejavu_sans, 11), owner["email"])
+        y += 2
+
+    if "phone" in owner:
+        _, y = draw_icon_text(draw, (x,y),
+                      ImageFont.truetype(fa_solid, 12), '\uf095', 
+                      ImageFont.truetype(dejavu_sans, 12), owner["phone"])
+        y += 2
+
+    if "twitter" in owner:
+        _, y = draw_icon_text(draw, (x,y),
+                      ImageFont.truetype(fa_regular_brands, 12), '\uf099', 
+                      ImageFont.truetype(dejavu_sans, 12), owner["twitter"])
 
 def draw_info(gadget_info: GadgetInfo, shutdown: bool):
     img = Image.new("P", (inky.WIDTH, inky.HEIGHT))
@@ -275,7 +296,12 @@ def draw_info(gadget_info: GadgetInfo, shutdown: bool):
     time.sleep(15)
 
 current_info = GadgetInfo(None,None,None,None,None)
-exit_gracefully = lambda _: draw_info(current_info, True)
+
+def exit_gracefully(signum, frame):
+    global current_info
+    draw_info(current_info, True)
+    sys.exit(0)
+
 signal.signal(signal.SIGINT, exit_gracefully)
 signal.signal(signal.SIGTERM, exit_gracefully)
 while True:
