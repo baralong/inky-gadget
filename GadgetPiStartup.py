@@ -214,12 +214,13 @@ def draw_filler(draw, xy, x_max: int,  shutdown: bool):
             radius = 5)
     x += 5
     y += 5
-    font_text = ImageFont.truetype(dejavu_sans, 14)
-    _, y = draw_text(draw, (x,y), owner_name, inky.BLACK, font_text)
-    y += 3
+    _, y = draw_icon_text(draw, (x,y),
+                          ImageFont.truetype(fa_solid, 12), '\uf4fb', 
+                          ImageFont.truetype(dejavu_sans_bold, 12), owner_name)
+    y += 2
     _, y = draw_icon_text(draw, (x,y),
                           ImageFont.truetype(fa_regular, 12), '\uf0e0', 
-                          ImageFont.truetype(dejavu_sans, 12), owner_email)
+                          ImageFont.truetype(dejavu_sans, 11), owner_email)
     y += 2
     _, y = draw_icon_text(draw, (x,y),
                           ImageFont.truetype(fa_solid, 12), '\uf095', 
@@ -241,15 +242,15 @@ def draw_info(gadget_info: GadgetInfo, shutdown: bool):
 
     if not shutdown and gadget_info.wlan != None:
         xd, y = draw_icon_text(draw, (x,y), 
-                          ImageFont.truetype(fa_regular, 16), '\uf1eb', 
+                          ImageFont.truetype(fa_solid, 16), '\uf1eb', 
                           ImageFont.truetype(dejavu_sans, 14), gadget_info.wlan)
         x_max = max(x_max, xd)
         y += 3
     
-    if not shutdown and gadget_info.wlan != None:
+    if not shutdown and gadget_info.usb != None:
         xd, y = draw_icon_text(draw, (x,y), 
                           ImageFont.truetype(fa_regular_brands, 16), '\uf287', 
-                          ImageFont.truetype(dejavu_sans, 14), gadget_info.wlan)
+                          ImageFont.truetype(dejavu_sans, 14), gadget_info.usb)
         x_max = max(x_max, xd)
         y += 3
 
