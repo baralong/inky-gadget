@@ -80,8 +80,8 @@ def draw_host(draw, xy, hostname):
 
     # draw a box big enough to have the text and logo with padding
     x, y = xy
-    box_width = x + logo_width + text_width + 10 # start + logo + host name + padding
-    box_height = y + content_height + 10 # start + text height + padding
+    box_width = logo_width + text_width + 10 # start + logo + host name + padding
+    box_height = content_height + 10 # start + text height + padding
     draw.rounded_rectangle(
             xy = [(x,y),(x + box_width, y + box_height)],
             fill = inky.RED,
@@ -117,11 +117,11 @@ def draw_usage_text(draw, xy, usage):
                 spacing = 2)
     
     box_width = label_width + value_width + 3 + 10 # border, text width, box padding 
-    box_height = label_height + 10 # text height + padding
+    box_height = label_height + 12 # text height + padding
 
     # draw the box
     _, y = xy
-    x = inky.WIDTH - box_width - 3 # border, text width, box padding 
+    x = inky.WIDTH - box_width - 5 # border, text width, box padding 
 
     draw.rounded_rectangle(
             xy = [(x,y),(x + box_width, y + box_height)],
@@ -130,7 +130,7 @@ def draw_usage_text(draw, xy, usage):
             width = 2,
             radius = 5)
     x += 5
-    y += 5
+    y += 3
     draw.multiline_text(xy = (x,y), 
                         text = labels, 
                         fill = inky.WHITE, 
@@ -151,8 +151,8 @@ def draw_usage_chart(draw, xy, usage):
                 inky.WIDTH - x,
                 inky.HEIGHT - y)
     chart_size -= 10 
-    x += 5
-    y += 5
+    x = (x + inky.WIDTH - chart_size) / 2 
+    y = (y + inky.HEIGHT - chart_size) / 2
     draw.ellipse(xy =  [(x, y), (x + chart_size, y + chart_size)],
                  outline = inky.BLACK, 
                  fill = inky.WHITE, 
@@ -179,7 +179,7 @@ def draw_icon_text(draw, xy, icon_font, icon_text, interface_font, interface_tex
     return (x, max(y_icon, y_text))
 
 def draw_users(draw, xy, users: list[User]):
-    font = ImageFont.truetype(dejavu_sans,10)
+    font = ImageFont.truetype(dejavu_sans,14)
     x,y = xy
     y_max = 0
     x_max = 0
@@ -214,20 +214,20 @@ def draw_filler(draw, xy, x_max: int,  shutdown: bool):
             radius = 5)
     x += 5
     y += 5
-    font_text = ImageFont.truetype(dejavu_sans, 20)
+    font_text = ImageFont.truetype(dejavu_sans, 14)
     _, y = draw_text(draw, (x,y), owner_name, inky.BLACK, font_text)
     y += 3
     _, y = draw_icon_text(draw, (x,y),
-                          ImageFont.truetype(fa_regular, 16), '\uf0e0', 
-                          ImageFont.truetype(dejavu_sans, 16), owner_email)
+                          ImageFont.truetype(fa_regular, 12), '\uf0e0', 
+                          ImageFont.truetype(dejavu_sans, 12), owner_email)
     y += 2
     _, y = draw_icon_text(draw, (x,y),
-                          ImageFont.truetype(fa_solid, 16), '\uf095', 
-                          ImageFont.truetype(dejavu_sans, 16), owner_phone)
+                          ImageFont.truetype(fa_solid, 12), '\uf095', 
+                          ImageFont.truetype(dejavu_sans, 12), owner_phone)
     y += 2
     _, y = draw_icon_text(draw, (x,y),
-                          ImageFont.truetype(fa_regular_brands, 16), '\uf099', 
-                          ImageFont.truetype(dejavu_sans, 16), owner_twitter)
+                          ImageFont.truetype(fa_regular_brands, 12), '\uf099', 
+                          ImageFont.truetype(dejavu_sans, 12), owner_twitter)
 
 def draw_info(gadget_info: GadgetInfo, shutdown: bool):
     img = Image.new("P", (inky.WIDTH, inky.HEIGHT))
@@ -236,20 +236,20 @@ def draw_info(gadget_info: GadgetInfo, shutdown: bool):
     x = 5
     y = 5
     xd,y = draw_host(draw, (x,y), gadget_info.host_name)
-    y += 3
+    y += 5
     x_max = xd
 
     if not shutdown and gadget_info.wlan != None:
         xd, y = draw_icon_text(draw, (x,y), 
                           ImageFont.truetype(fa_regular, 16), '\uf1eb', 
-                          ImageFont.truetype(dejavu_sans, 16), gadget_info.wlan)
-        y += 3
+                          ImageFont.truetype(dejavu_sans, 14), gadget_info.wlan)
         x_max = max(x_max, xd)
+        y += 3
     
-    if not shutdown and gadget_info.usb != None:
+    if not shutdown and gadget_info.wlan != None:
         xd, y = draw_icon_text(draw, (x,y), 
-                          ImageFont.truetype(fa_regular_brands, 16), '\uf1eb', 
-                          ImageFont.truetype(dejavu_sans, 16), gadget_info.usb)
+                          ImageFont.truetype(fa_regular_brands, 16), '\uf287', 
+                          ImageFont.truetype(dejavu_sans, 14), gadget_info.wlan)
         x_max = max(x_max, xd)
         y += 3
 
