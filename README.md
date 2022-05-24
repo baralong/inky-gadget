@@ -1,9 +1,9 @@
 # Overview
 A smart usb drive made from:
 1. [Raspberry Pi Zero 2 W](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/)
-2. [InkyPHAT (red & black)](https://shop.pimoroni.com/products/inky-phat?variant=12549254217811)
+2. [Pimoroni InkyPHAT (red & black)](https://shop.pimoroni.com/products/inky-phat?variant=12549254217811)
 3. 128Gb micro SD card
-4. [Flirc case](https://flirc.tv/products/flirc-raspberrypizero?variant=42687976833252) (hacked up a bit)
+4. [Flirc Raspberry Pi Zero case](https://flirc.tv/products/flirc-raspberrypizero?variant=42687976833252) (hacked up a bit)
 
 Borrowing from the ethernet and mass storage gadgets described here: https://github.com/thagrol/Guides using `libcomposite` you plug it in and it appears as:
 * USB Ethernet
@@ -13,7 +13,7 @@ Borrowing from the ethernet and mass storage gadgets described here: https://git
 The display shows:
 * Name of the device
 * Space on the external storage
-* When powered and conneted:
+* When powered and connected:
   * network addresses (wifi & USB) 
   * any connections (TTY is com port, SSH is via network)
 * When disconnected or unpowered (assuming the Pi was shut down cleanly)
@@ -40,9 +40,9 @@ All this is optional, other cases would work just as well, but I really liked th
 ## Software
 ### Assumptions
 * You have the inkyPHAT and related software installed and it runs as root (i.e. `sudo ...`) the service will run as root, so it's good to test it
-* The files for this are placed in `/home/pi/dev`. If you put them somewhere else you'll need to edit `GadgetPiStartup.service`. The latest version of the Raspbeyy Pi Imager ***does not*** default to using the `pi` user, so it's likely you'll have a different location.
-* You can login to your pi via ssh etc. This dosn't cover headless pi setup.
-* You have a basic understanding of doing stuff on a reaspberry pi, particularly in headless mode
+* The files for this are placed in `/home/pi/dev`. If you put them somewhere else you'll need to edit `GadgetPiStartup.service`. The latest version of the Raspberry Pi Imager ***does not*** default to using the `pi` user, so it's likely you'll have a different location.
+* You can login to your pi via ssh etc. This doesn't cover headless pi setup.
+* You have a basic understanding of doing stuff on a raspberry pi, particularly in headless mode
 
 ### Setup
 You'll need the InkyPHAT in the pi to verify all this actually works, also the `GadgetPiStartup.py` will probably fail if it's not plugged in.
@@ -51,7 +51,7 @@ You'll need the InkyPHAT in the pi to verify all this actually works, also the `
 2. Install and test the inkyPHAT libraries, their one liner should work
 ```
   curl https://get.pimoroni.com/inky | bash
- ```
+```
 3. Copy this repo to your chosen location
 4. Edit `GadgetPiStartup.service` so the `ExecStart` points to the full path of `GadgetPiStartup.py`
 5. `sudo cp usbGadget.sh /boot/`
@@ -71,11 +71,11 @@ enable_uart=1
 11. `sudo cp usbGadget.service /etc/systemd/system/`
 12. `sudo systemctl enable  usbGadget.service`
 13. `systemctl start  usbGadget.service`
-14. `sudo journalctl --unit=usbGadget.service` check for errors. (Troublshooting this is left as an exercise for the reader :wink:)
+14. `sudo journalctl --unit=usbGadget.service` check for errors. (Troubleshooting this is left as an exercise for the reader :wink:)
 15. `sudo cp GadgetPiStartup.service /etc/systemd/system/`
 16. `sudo systemctl enable  GadgetPiStartup.service`
 17. `systemctl start  GadgetPiStartup.service`
-18. `sudo journalctl --unit=GadgetPiStartup.service` check for errors. (Troublshooting ...)
+18. `sudo journalctl --unit=GadgetPiStartup.service` check for errors. (Troubleshooting ...)
 19. `sudo shutdown -r now`
 
 ## Owner Details
@@ -98,8 +98,11 @@ You can edit the file in place, or, make a copy to the root of the mass storage 
 # Future changes:
 The main thing I'd like is some way to interact with the Raspberry Pi, other than remoting into it. There's not a lot of room, but these are the options as I see them:
 1. Buttons! There's some room to the left of the inky screen above the case cover. There are some [spare pins](https://pinout.xyz/pinout/inky_phat) though wiring them up could be tricky.
-2. An accellerometer... it could detect taps and movement/orientation. I2C would probably be best, but, again, wiring it up would be hard
-3. Droping files onto the mass storage. No hardware required, but the drive is read only, so it'd need a way to detect changes.
+2. An accelerometer... it could detect taps and movement/orientation. I2C would probably be best, but, again, wiring it up would be hard
+3. Dropping files onto the mass storage. No hardware required, but the drive is read only, so it'd need a way to detect changes.
 
 The other thing that I'd really like is faster screen refreshes. This would allow some kind of menu system. A bit like the [Pimoroni Badger](https://shop.pimoroni.com/products/badger-2040?variant=39752959852627)
-One other thing would be to have scripts stored on the mass storage, that the pi could excute, ideally
+
+One other thing would be to have scripts stored on the mass storage, that the pi could execute as required. Unfortunately there are some security issues there and working out when to run them would be challenging.
+
+

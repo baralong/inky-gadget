@@ -1,11 +1,22 @@
 {
     "cSpell.words": [
         "dejavu",
+        "dtoverlay",
         "exfat",
+        "fallocate",
+        "Flirc",
         "geteuid",
+        "Imager",
         "inet",
+        "journalctl",
+        "libcomposite",
         "ntuple",
+        "Pimoroni",
         "psutil",
+        "remoting",
+        "uart",
+        "unpowered",
+        "usbdisk",
         "wlan"
     ]
 }
