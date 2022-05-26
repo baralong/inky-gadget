@@ -3,7 +3,7 @@ Description=USB Gadget init service
 
 [Service]
 Type=exec
-ExecStart=/boot/usbGadget.sh
+ExecStart=/home/pi/dev/inky-gadget/usbGadget.sh
 
 [Install]
 WantedBy=multi-user.target
