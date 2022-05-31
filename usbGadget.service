@@ -8,3 +8,7 @@ ExecStart=/home/pi/dev/inky-gadget/usbGadget.sh
 [Install]
 WantedBy=multi-user.target
 
+# you can start the service with
+#    sudo systemctl start  GadgetPiStartup.service
+# you can stop the service with
+#    sudo systemctl stop  GadgetPiStartup.service
