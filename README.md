@@ -80,7 +80,7 @@ You'll need the InkyPHAT in the pi to verify all this actually works, also the `
 12. Enable the service<br>
 `sudo systemctl enable  usbGadget.service`
 13. Start the service<br>
-`systemctl start  usbGadget.service`
+`sudo systemctl start  usbGadget.service`
 14. Check for errors.<br>
 `sudo journalctl --unit=usbGadget.service` 
     * At this point you should be able to plug the Raspberry Pi in and connect via the USB serial port or the USB ethernet port
@@ -96,7 +96,7 @@ You should see the InkyPHAT displaying the details as above. Terminate with `<ct
 18. Enable the service<br>
 `sudo systemctl enable  GadgetPiStartup.service`
 19. Start the service<br>
-`systemctl start  GadgetPiStartup.service`
+`sudo systemctl start  GadgetPiStartup.service`
 20. Check for errors.<br>
 `sudo journalctl --unit=GadgetPiStartup.service` 
 ### You're all done!!
