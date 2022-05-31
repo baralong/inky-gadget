@@ -11,11 +11,11 @@
 # sensible defaults but change as desired
 GADGETDIR='gadgetpi' # full path should not be supplied
 SERIAL=`cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2` # Pi's serial number
-HOSTPREFIX="02"     # hex, two digits only
-DEVICEPREFIX="06"   # hex, two digits only
-MANUFACTURER="Baralong"
-PRODUCT='USB Gadget Device'
-FILE='/usbdisk'
+HOSTPREFIX="02"             # hex, two digits only
+DEVICEPREFIX="06"           # hex, two digits only
+MANUFACTURER="Baralong"     # This can be anything
+PRODUCT='USB Gadget Device' # You can also change this
+FILE='/usbdisk'             # location and base name for the USB backing store and mount point
 
 # calculate MAC addresses
 padded='00000000000000'$SERIAL
@@ -73,6 +73,16 @@ echo 0 > functions/mass_storage.usb0/lun.0/ro
 echo 0 > functions/mass_storage.usb0/lun.0/nofua
 echo $FILE.img > functions/mass_storage.usb0/lun.0/file
 ln -s functions/mass_storage.usb0 configs/c.1/
+
+# Human Interface Device (HID): Keyboard, mouse, joystick
+# Enables it, but doesn't actually do anything in and of itself
+# to send keystrokes write to the /dev/hidg0
+#mkdir -p functions/hid.usb0
+#echo 1 > functions/hid.usb0/protocol
+#echo 1 > functions/hid.usb0/subclass
+#echo 8 > functions/hid.usb0/report_length
+#echo -ne \\x05\\x01\\x09\\x06\\xa1\\x01\\x05\\x07\\x19\\xe0\\x29\\xe7\\x15\\x00\\x25\\x01\\x75\\x01\\x95\\x08\\x81\\x02\\x95\\x01\\x75\\x08\\x81\\x03\\x95\\x05\\x75\\x01\\x05\\x08\\x19\\x01\\x29\\x05\\x91\\x02\\x95\\x01\\x75\\x03\\x91\\x03\\x95\\x06\\x75\\x08\\x15\\x00\\x25\\x65\\x05\\x07\\x19\\x00\\x29\\x65\\x81\\x00\\xc0 > functions/hid.usb0/report_desc
+#ln -s functions/hid.usb0 configs/c.1/
 
 # End Functions
 ls /sys/class/udc > UDC
