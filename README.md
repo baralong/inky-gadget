@@ -40,12 +40,12 @@ All this is optional, other cases would work just as well, but I really liked th
 ## Software
 ### Assumptions
 * You have the inkyPHAT and related software installed and it runs as root (i.e. `sudo ...`) the service will run as root, so it's good to test it
-* The files for this are placed in `/home/pi/dev`. If you put them somewhere else you'll need to edit `GadgetPiStartup.service`. The latest version of the Raspberry Pi Imager ***does not*** default to using the `pi` user, so it's likely you'll have a different location.
+* The files for this are placed in `/home/pi`. If you put them somewhere else you'll need to edit `GadgetPiStartup.service`. The latest version of the Raspberry Pi Imager ***does not*** default to using the `pi` user, so it's likely you'll have a different location.
 * You can login to your pi via ssh etc. This doesn't cover headless pi setup.
 * You have a basic understanding of doing stuff on a raspberry pi, particularly in headless mode
 
 ### Setup
-You'll need the InkyPHAT ocd n the pi to verify all this actually works, also the `GadgetPiStartup.py` will probably fail if it's not plugged in.
+You'll need the InkyPHAT on the pi to verify all this actually works, also the `GadgetPiStartup.py` will probably fail if it's not plugged in.
 
 ### Basic prerequisites
 1. Start with a clean install of Raspbian set up as per the above assumptions 
@@ -55,17 +55,15 @@ You'll need the InkyPHAT ocd n the pi to verify all this actually works, also th
 3. Install and test the inkyPHAT libraries, their one liner should work <br>
 `curl https://get.pimoroni.com/inky | bash`
     * *Optional:* you can test the install with the included examples
-4. Reboot the Raspberry Pi<br>
+4. Install and test the ButtonShim libraries <br>
+`curl https://get.pimoroni.com/buttonshim | bash`
+5. Reboot the Raspberry Pi<br>
 `sudo shutdown -r now`
-5. Install git<br>
+6. Install git<br>
 `sudo apt install git`
-6. Clone this repo<br>
-`md dev;cd dev` # optional<br>
+7. Clone this repo<br>
 `git clone https://github.com/baralong/inky-gadget.git`<br>
 `cd inky-gadget`
-7. If you didn't clone to the `dev` directory: 
-    1. Edit `GadgetPiStartup.service` so the `ExecStart` points to the full path of `GadgetPiStartup.py`
-    2. Edit `GadgetPiStartup.service` so the `ExecStart` points to the full path of `usbGadget.sh`
 ### Set up the mass storage backing file and usb gadget
 8. Install exfat support needed for the mass storage device<br>
 `sudo apt-get install exfat-fuse exfat-utils`
@@ -75,34 +73,36 @@ You'll need the InkyPHAT ocd n the pi to verify all this actually works, also th
 10. Format the image (volume name of `gadget-pi` is used here)<br>
 `sudo mkfs.exfat -n gadget-pi /usbdisk.img`
 ### Create and run the `usbGadget` service
-11. Copy the service configuration<br>
+11. Enable login via the gadget serial port<br>
+`sudo systemctl enable getty@ttyGS0.service`
+12. Copy the service configuration<br>
 `sudo cp usbGadget.service /etc/systemd/system/`
-12. Enable the service<br>
+13. Enable the service<br>
 `sudo systemctl enable  usbGadget.service`
-13. Start the service<br>
+14. Start the service<br>
 `sudo systemctl start  usbGadget.service`
-14. Check for errors.<br>
+15. Check for errors.<br>
 `sudo journalctl --unit=usbGadget.service` 
     * At this point you should be able to plug the Raspberry Pi in and connect via the USB serial port or the USB ethernet port
     * **Note:** you may need to install additional CDC-ECM drivers for the ethernet port to work under windows
 ### Create and run the `GadgetPiStartup` service (used for the inky display)
-15. Install extra python libraries used by the service<br>
+16. Install extra python libraries used by the service<br>
 `sudo pip3 install ifcfg "Pillow>=9.0" psutil`
-16. Test the script:<br>
+17. Test the script:<br>
 `sudo python3 GadgetPiStartup.py`<br>
 You should see the InkyPHAT displaying the details as above. Terminate with `<ctrl>-C`
     * **Note** if you get an error `libopenjp2.so.7: cannot open shared object file: ...` then run<br>
 `sudo apt-get install libopenjp2-7 `
-17. Copy the service configuration<br>
+18. Copy the service configuration<br>
 `sudo cp GadgetPiStartup.service /etc/systemd/system/`
-18. Enable the service<br>
+19. Enable the service<br>
 `sudo systemctl enable  GadgetPiStartup.service`
-19. Start the service<br>
+20. Start the service<br>
 `sudo systemctl start  GadgetPiStartup.service`
-20. Check for errors.<br>
+21. Check for errors.<br>
 `sudo journalctl --unit=GadgetPiStartup.service` 
 ### You're all done!!
-21. Reboot and make sure the services start up correctly<br>
+22. Reboot and make sure the services start up correctly<br>
 `sudo shutdown -r now`
 
 ## Owner Details

@@ -96,9 +96,9 @@ def draw_host(draw, xy, hostname):
     font_text = ImageFont.truetype(dejavu_sans, 24)
 
     # measure up how much space we need for the text and logo
-    logo_width, logo_height = font_logo.getsize(rpi_logo)
+    _, _, logo_width, logo_height = font_logo.getbbox(rpi_logo)
     logo_width += 3 # add some space after
-    text_width, text_height = font_text.getsize(hostname)
+    _, _, text_width, text_height = font_text.getbbox(hostname)
     content_height = max(logo_height, text_height)
 
     # draw a box big enough to have the text and logo with padding
@@ -126,7 +126,8 @@ def draw_usage_text(draw, xy, usage):
 
     # measure up all the text to see how much space we need
     labels = 'Used\nFree\nTotal'
-    label_width, label_height = draw.multiline_textsize(
+    _, _, label_width, label_height = draw.multiline_textbbox(
+                xy = (0,0),
                 text = labels, 
                 font = font, 
                 spacing = 2)
@@ -135,7 +136,8 @@ def draw_usage_text(draw, xy, usage):
               f'{format_bytes(usage.free)}\n'+
               f'{format_bytes(usage.total)}')
 
-    value_width, _ = draw.multiline_textsize( # it's still 3 lines of text, so we don't need to measure the height
+    _,_,value_width,_ = draw.multiline_textbbox( # it's still 3 lines of text, so we don't need to measure the height
+                xy = (0,0),
                 text = values, 
                 font = font, 
                 spacing = 2)
@@ -209,7 +211,7 @@ def draw_usage_chart(draw, xy, usage):
 
 # draw some text in a particular color and font
 def draw_text(draw, xy, text, color, font):
-    w,h = font.getsize(text)
+    _, _, w,h = font.getbbox(text)
     draw.text(xy, text, color, font)
     return (w+xy[0], h+xy[1])
 
@@ -268,7 +270,7 @@ def draw_owner(draw, xy, x_max: int):
     # draw the background box
     x, y = xy
     draw.rounded_rectangle(
-            xy = [(x,y),(x_max, inky.HEIGHT - 4)],
+            xy = [(x,y),(x_max, inky.HEIGHT)],
             fill = inky.WHITE,
             outline = inky.RED,
             width = 2,
@@ -310,7 +312,7 @@ def draw_info(gadget_info: GadgetInfo, shutdown: bool):
 
     # Host
     x = 5
-    y = 5
+    y = 10
     xd,y = draw_host(draw, (x,y), gadget_info.host_name)
     y += 5
     x_max = xd
@@ -341,7 +343,7 @@ def draw_info(gadget_info: GadgetInfo, shutdown: bool):
 
     # Draw the usage text and chart
     x = x_max
-    y = 5
+    y = 10
     _,y = draw_usage_text(draw, (x,y), gadget_info.usage)
     draw_usage_chart(draw, (x,y), gadget_info.usage)
 
