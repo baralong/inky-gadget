@@ -45,34 +45,34 @@ All this is optional, other cases would work just as well, but I really liked th
 * You have a basic understanding of doing stuff on a raspberry pi, particularly in headless mode
 
 ### Setup
-You'll need the InkyPHAT in the pi to verify all this actually works, also the `GadgetPiStartup.py` will probably fail if it's not plugged in.
+You'll need the InkyPHAT ocd n the pi to verify all this actually works, also the `GadgetPiStartup.py` will probably fail if it's not plugged in.
 
 ### Basic prerequisites
 1. Start with a clean install of Raspbian set up as per the above assumptions 
 2. Enable usb gadget mode by editing `/boot/config.txt` at the end, under `[all]` add<br>
 `dtoverlay=dwc2`<br>
 `enable_uart=1`
-2. Install and test the inkyPHAT libraries, their one liner should work <br>
+3. Install and test the inkyPHAT libraries, their one liner should work <br>
 `curl https://get.pimoroni.com/inky | bash`
     * *Optional:* you can test the install with the included examples
-3. Reboot the Raspberry Pi<br>
+4. Reboot the Raspberry Pi<br>
 `sudo shutdown -r now`
-4. Install git<br>
+5. Install git<br>
 `sudo apt install git`
-4. Clone this repo<br>
+6. Clone this repo<br>
 `md dev;cd dev` # optional<br>
 `git clone https://github.com/baralong/inky-gadget.git`<br>
 `cd inky-gadget`
-6. If you didn't clone to the `dev` directory: 
+7. If you didn't clone to the `dev` directory: 
     1. Edit `GadgetPiStartup.service` so the `ExecStart` points to the full path of `GadgetPiStartup.py`
     2. Edit `GadgetPiStartup.service` so the `ExecStart` points to the full path of `usbGadget.sh`
 ### Set up the mass storage backing file and usb gadget
-7. Install exfat support needed for the mass storage device<br>
+8. Install exfat support needed for the mass storage device<br>
 `sudo apt-get install exfat-fuse exfat-utils`
-8. Allocate space for the mass storage device (e.g. 32GB)<br>
+9. Allocate space for the mass storage device (e.g. 32GB)<br>
 *you can check the available disk space with `df -h` look for the `/` mount point*<br>
 `sudo fallocate -l 32GB /usbdisk.img`
-9. Format the image (volume name of `gadget-pi` is used here)<br>
+10. Format the image (volume name of `gadget-pi` is used here)<br>
 `sudo mkfs.exfat -n gadget-pi /usbdisk.img`
 ### Create and run the `usbGadget` service
 11. Copy the service configuration<br>
@@ -87,10 +87,12 @@ You'll need the InkyPHAT in the pi to verify all this actually works, also the `
     * **Note:** you may need to install additional CDC-ECM drivers for the ethernet port to work under windows
 ### Create and run the `GadgetPiStartup` service (used for the inky display)
 15. Install extra python libraries used by the service<br>
-`sudo pip3 install ifcfg Pillow psutil`
+`sudo pip3 install ifcfg "Pillow>=9.0" psutil`
 16. Test the script:<br>
 `sudo python3 GadgetPiStartup.py`<br>
-You should see the InkyPHAT displaying the details as above. Terminate with `<ctrl>-C`<br>
+You should see the InkyPHAT displaying the details as above. Terminate with `<ctrl>-C`
+    * **Note** if you get an error `libopenjp2.so.7: cannot open shared object file: ...` then run<br>
+`sudo apt-get install libopenjp2-7 `
 17. Copy the service configuration<br>
 `sudo cp GadgetPiStartup.service /etc/systemd/system/`
 18. Enable the service<br>
