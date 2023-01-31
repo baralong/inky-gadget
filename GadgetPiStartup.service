@@ -6,7 +6,7 @@ After=usbGadget.service
 Restart=always
 RestartSec=5s
 Type=exec
-ExecStart=/usr/bin/python3 -u /home/pi/dev/inky-gadget/GadgetPiStartup.py
+ExecStart=/usr/bin/python3 -u $PATH/inky-gadget/GadgetPiStartup.py
 
 [Install]
 WantedBy=multi-user.target  

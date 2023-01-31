@@ -3,7 +3,7 @@ Description=USB Gadget init service
 
 [Service]
 Type=exec
-ExecStart=/home/doug/inky-gadget/usbGadget.sh
+ExecStart=$PATH/usbGadget.sh
 
 [Install]
 WantedBy=multi-user.target
